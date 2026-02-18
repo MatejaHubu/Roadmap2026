@@ -228,3 +228,21 @@ body.add-mode #map {
           crosshair;
 }
 
+.popup-btn{
+  border:none;
+  padding:6px 10px;
+  margin-right:6px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.85rem;
+}
+
+.edit-btn{
+  background:#4f74ff;
+  color:white;
+}
+
+.delete-btn{
+  background:#ff4f5f;
+  color:white;
+}

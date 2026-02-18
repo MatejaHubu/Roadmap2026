@@ -119,16 +119,98 @@ function addMarker(v){
   const marker = L.marker([v.lat,v.lng]).addTo(map);
 
   marker.bindPopup(`
-    <strong>${v.name}</strong><br>
-    ${v.date_label || ""}<br>
-    ${v.description || ""}
-  `);
+    <div class="popup-content">
+      <strong>${v.name}</strong><br>
+      ${v.date_label || ""}<br>
+      ${v.description || ""}<br><br>
 
+      <button class="popup-btn edit-btn" data-id="${v.id}">
+        ✏ Modifier
+      </button>
+
+      <button class="popup-btn delete-btn" data-id="${v.id}">
+        🗑 Supprimer
+      </button>
+    </div>
+  `);
   marker.on("click", () => {
     map.flyTo([v.lat,v.lng],8,{duration:1.5});
   });
 
   markers[v.id] = marker;
+  marker.on("popupopen", () => {
+
+  const editBtn =
+    document.querySelector(".edit-btn");
+
+  const deleteBtn =
+    document.querySelector(".delete-btn");
+
+  /* ======================
+     EDIT
+  ====================== */
+  editBtn?.addEventListener("click", async () => {
+
+    const newName =
+      prompt("Nouveau nom :", v.name);
+
+    if (!newName) return;
+
+    const newDate =
+      prompt("Nouvelle date :", v.date_label);
+
+    const newDesc =
+      prompt("Nouvelle description :", v.description);
+
+    const { error } = await db
+      .from("voyages")
+      .update({
+        name: newName,
+        date_label: newDate,
+        description: newDesc
+      })
+      .eq("id", v.id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    marker.closePopup();
+    marker.remove();
+
+    const updated = {
+      ...v,
+      name: newName,
+      date_label: newDate,
+      description: newDesc
+    };
+
+    addMarker(updated);
+  });
+
+  /* ======================
+     DELETE
+  ====================== */
+  deleteBtn?.addEventListener("click", async () => {
+
+    if (!confirm("Supprimer ce lieu ?")) return;
+
+    const { error } = await db
+      .from("voyages")
+      .delete()
+      .eq("id", v.id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    map.removeLayer(marker);
+  });
+
+});
+
 }
 
 /* =========================
